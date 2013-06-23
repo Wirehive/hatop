@@ -256,3 +256,12 @@ Health check status reference
   L7RSP       layer 7 invalid response - protocol error
   L7STS       layer 7 response error, for example HTTP 5xx
 
+
+Connecting using TCP over a network
+===================================
+
+Although not natively supported in HAProxy it is possible to expose the command
+socket to the network for remote administration. HATop now has support for this.
+
+An example of this using socat to expose the HAProxy socket can be found here:
+https://github.com/simonjgreen/haproxy-remote
