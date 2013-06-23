@@ -45,26 +45,32 @@ Invoking hatop without options or with ``-h / --help`` results in:
 ::
 
   $ hatop --help
-  Usage: hatop -s SOCKET [OPTIONS]...
-
+  Usage: hatop -s SOCKET [OPTIONS]... OR hatop -H HOST -P PORT [OPTIONS]...
+  
   Options:
     --version             show program's version number and exit
     -h, --help            show this help message and exit
-
-    Mandatory:
+  
+    Mandatory if connecting via UNIX domain socket:
       -s SOCKET, --unix-socket=SOCKET
                           path to the haproxy unix socket
-
+  
+    Mandatory if connecting via TCP:
+      -P TCPPORT, --port=TCPPORT
+                          TCP port on haproxy server
+      -H TCPHOST, --host=TCPHOST
+                          Remote host to connect to via TCP
+  
     Optional:
       -i INTERVAL, --update-interval=INTERVAL
                           update interval in seconds (1-30, default: 3)
       -m MODE, --mode=MODE
                           start in specific mode (1-5, default: 1)
       -n, --read-only     disable the cli and query for stats only
-
+  
     Filters:
       Note: All filter options may be given multiple times.
-
+  
       -f FILTER, --filter=FILTER
                           stat filter in format "<iid> <type> <sid>"
       -p PROXY, --proxy=PROXY
