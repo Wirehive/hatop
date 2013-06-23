@@ -264,4 +264,4 @@ Although not natively supported in HAProxy it is possible to expose the command
 socket to the network for remote administration. HATop now has support for this.
 
 An example of this using socat to expose the HAProxy socket can be found here:
-https://github.com/simonjgreen/haproxy-remote
+https://github.com/Wirehive/haproxy-remote
