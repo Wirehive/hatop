@@ -185,7 +185,7 @@ L7STS       layer 7 response error, for example HTTP 5xx
 __author__    = 'John Feuerstein <john@feurix.com>'
 __copyright__ = 'Copyright (C) 2010 %s' % __author__
 __license__   = 'GNU GPLv3'
-__version__   = '0.7.7'
+__version__   = '0.8.0'
 
 import fcntl
 import os
@@ -393,10 +393,16 @@ except TypeError:
 
 class Socket:
 
-    def __init__(self, path, readonly=False):
-        self.path = path
+    def __init__(self, mode, path="", host="", port=43100, readonly=False):
+        self.mode = mode
         self.ro = readonly
-        self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.path = path
+        self.host = host
+        self.port = port
+        if (self.mode == 'socket'):
+            self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        if (self.mode == 'tcp'):
+            self._socket = socket.socket()
 
     def _recv(self):
         # socket.recv() wrapper raising SocketError if we receive
@@ -408,7 +414,10 @@ class Socket:
 
     def connect(self):
         # Initialize socket connection
-        self._socket.connect(self.path)
+        if (self.mode == 'socket'):
+            self._socket.connect(self.path)
+        if (self.mode == 'tcp'):
+            self._socket.connect((self.host, self.port))
         self._socket.settimeout(HAPROXY_CLI_CMD_TIMEOUT)
 
         # Enter the interactive socket mode. This requires HAProxy 1.4+ and
@@ -2135,9 +2144,17 @@ if __name__ == '__main__':
 
     parser = OptionParser(usage=usage, version=version)
 
-    opts = OptionGroup(parser, 'Mandatory')
+    opts = OptionGroup(parser, 'Mandatory if connecting via UNIX domain socket')
     opts.add_option('-s', '--unix-socket', dest='socket',
             help='path to the haproxy unix socket')
+    parser.add_option_group(opts)
+    
+    opts = OptionGroup(parser, 'Mandatory if connecting via TCP')
+    opts.add_option('-P', '--port', type='int', dest='tcpport',
+            help='TCP port on haproxy server')
+    opts.add_option('-H', '--host', dest='tcphost',
+            help='Remote host to connect to via TCP')
+    
     parser.add_option_group(opts)
 
     opts = OptionGroup(parser, 'Optional')
@@ -2174,13 +2191,21 @@ if __name__ == '__main__':
         log('cli not available in read-only mode')
         sys.exit(1)
     if not opts.socket:
-        parser.print_help()
-        sys.exit(0)
-    if not os.access(opts.socket, os.R_OK | os.W_OK):
-        log('insufficient permissions for socket path %s' % opts.socket)
+        if not opts.tcphost or not opts.tcpport:
+            parser.print_help()
+            sys.exit(0)
+    if opts.socket and (opts.tcphost or opts.tcpport):
+        log('you can not use domain socket and TCP at the same time')
         sys.exit(2)
-
-    socket = Socket(opts.socket, opts.ro)
+    if opts.socket:
+        connectionmode="socket"
+        if not os.access(opts.socket, os.R_OK | os.W_OK):
+            log('insufficient permissions for socket path %s' % opts.socket)
+            sys.exit(2)
+    if opts.tcphost and opts.tcpport:
+        connectionmode="tcp"
+    
+    socket = Socket(connectionmode, opts.socket, opts.tcphost, opts.tcpport, opts.ro)
     data = SocketData(socket)
     screen = Screen(data, opts.mode)
 
