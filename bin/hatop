@@ -2140,7 +2140,7 @@ if __name__ == '__main__':
     from optparse import OptionParser, OptionGroup
 
     version  = 'hatop version %s' % __version__
-    usage    = 'Usage: hatop -s SOCKET [OPTIONS]...'
+    usage    = 'Usage: hatop -s SOCKET [OPTIONS]... OR hatop -H HOST -P PORT [OPTIONS]...'
 
     parser = OptionParser(usage=usage, version=version)
 
